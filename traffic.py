@@ -58,9 +58,34 @@ def load_data(data_dir):
     be a list of integer labels, representing the categories for each of the
     corresponding `images`.
     """
-    with open(data_dir, "r") as file:
+    images = list()
+    labels = list()
 
+    # loop through range NUM_catergories
+    for folder in range(NUM_CATEGORIES):
 
+        # create new folder in data_dir_new
+        data_dir_new = os.path.join(data_dir, str(folder))
+        # print(f"Folder: {data_dir_new}, FileS: {os.listdir(data_dir_new)}")
+
+        # loop through files in folders os.listdir(data_dir_new)
+        for file in os.listdir(data_dir_new):
+
+            #open the images
+            image = cv2.imread(os.path.join(data_dir_new, file))
+
+            # transform to RGB:
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+            #resizing to IMG_WIDTH, IMG_HEIGT
+            resized_image = cv2.resize(image, (IMG_WIDTH, IMG_HEIGHT))
+
+            #saving into lists
+            images.append(resized_image)
+            labels.append(folder)
+
+    # return values
+    return (images, labels)
 
 def get_model():
     """
@@ -68,8 +93,35 @@ def get_model():
     `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`.
     The output layer should have `NUM_CATEGORIES` units, one for each category.
     """
-    raise NotImplementedError
+    # Create a convolutional neural network
+    model = tf.keras.models.Sequential([
 
+        # Convolutional layer. Learn 32 filters using a 3x3 kernel
+        tf.keras.layers.Conv2D(
+            32, (3, 3), activation="sigmoid", input_shape=(30, 30, 3)
+        ),
+
+        # Max-pooling layer, using 2x2 pool size
+        tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+
+        # Flatten units
+        tf.keras.layers.Flatten(),
+
+        # Add a hidden layer with dropout
+        tf.keras.layers.Dense(128, activation="sigmoid"),
+
+        # Add an output layer with output units for all categories
+        tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax")
+    ])
+
+    # Train neural network
+    model.compile(
+        optimizer="adam",
+        loss="categorical_crossentropy",
+        metrics=["accuracy"]
+    )
+
+    return model
 
 if __name__ == "__main__":
     main()
